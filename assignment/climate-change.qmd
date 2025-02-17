@@ -43,13 +43,25 @@ ggplot(co2, aes(x = decimal_date, y = monthly_average)) +
 
 Describe the overall trend in the CO2 data.
 
-**Answer 1:**
+We can observe an overall positive trend in CO2 concentration over the years. Additionally, the data projects as an upward saw tooth pattern, likely caused by seasonal variation caused by photosynthesis in the warm months.
 
 **Question 2:**
 
 How does CO2 vary within a year?  What month is it at max?  Min?  What might explain this sub-annual pattern? (you will need to write code and make a plot to answer this question)
 
-**Answer 2:**
+```{r}
+co2 |> 
+  group_by(month) |> 
+  summarize(monthly_average = mean(monthly_average)) |> 
+  ggplot(aes(month, monthly_average))+
+  geom_line()+
+  scale_x_continuous(breaks = c(seq(1, 12, 1)))
+
+
+
+```
+
+CO2 levels peak in May and are lowest in September. This can likely be attributed to the seasons in the northern hemisphere (more landmass and vegetation). When vegetation reaches peak photosynthesis, CO2 levels begin to fall until September when dormancy occurs once again.
 
 
 
@@ -69,7 +81,9 @@ Describe the data set to the best of your ability, given the documentation provi
 - Describe the class of each column and what units it is measured in. 
 - What is the difference between "global temperature" and "global temperature anomaly"? 
 
-**Answer 3:**
+This data comes from NASA/GISS and is compared to independent studies from NOAA.  
+Each column is a number, with the 'no_smoothing' and 'lowess(5)' columns being measured in degrees Celsius.  
+Global temperature refers to the average global temperature, while global temperature anomoly refers to how many degrees off of the average we are at for a given year.
 
 
 **Question 4:**
@@ -78,13 +92,26 @@ Construct the necessary R code to import and prepare for plotting the following 
 
 You'll need to determine the file's delimiter and any comments or skips. You will also need to be sure that you have column names. You will not directly use the code above to read the CO2 data, but that code provides helpful tips for reading the data.
 
-**Answer 4:**
+```{r}
+temp <- read_table("https://data.giss.nasa.gov/gistemp/graphs/graph_data/Global_Mean_Estimates_based_on_Land_and_Ocean_Data/graph.txt", 
+                  skip = 5,
+                  col_names = c("year", "no_smoothing", "lowess(5)"))
+```
 
 **Question 5:**
 
 Plot the trend in global mean temperatures over time.  Describe what you see in the plot and how you interpret the patterns you observe.
 
-**Answer 5:**
+```{r}
+temp |> 
+  ggplot(aes(year, no_smoothing))+
+  geom_line()+
+  geom_point()+
+  scale_x_continuous(breaks = c(seq(1880, 2025, 20)))+
+  theme_bw()+
+  labs(x = "Year", y = "Temperature Anomoly (C)", title = "Average Temperature over Time")
+```
+Generally, the anomaly fluctuates, but there is an overall upward trend. Around 1980, the anomaly begins to climb.
 
 ## Evaluating the evidence for a "Pause" in warming?
 
@@ -96,14 +123,27 @@ You will use rolling averages to help you explore the evidence for a pause. Sinc
 
 Use a search engine (e.g., Google) or a chat LLM to find out how to calculate a rolling average in R. What search term or chat LLM prompt did you use?  What website or answer from the chat LLM did you end up using?  How much did you need to modify the code from the website or chat LLM to answer the question successfully?
 
-**Answer 6:**
+```{r}
+install.packages("zoo")
+library(zoo)
+
+rollmean(temp$no_smoothing, k = 5, fill = NA, align = "right")
+```
+I used ChatGPT with the prompt, "How to calculate a rolling average in r." It gave me an example of the 'rollmean()' function from the Zoo package, and I only had to change the name of the data and change the k value.
 
 **Question 7:**
 
 - What is the meaning of "5-year average" vs. "annual average"?
 - Create a data frame from the annual temperature anomaly data (from Question 4) with three new columns: 5-year running averages, 10-year running averages, and 20-year running averages.
 
-**Answer 7:**
+Annual average refers to the average temperature from a single year, while 5 year average refers to the average temperature from across the past 5 years.
+
+```{r}
+temp <- temp |> 
+  mutate(five_year_avg = rollmean(no_smoothing, k = 5, fill = NA, align = "right"),
+         ten_year_avg = rollmean(no_smoothing, k = 10, fill = NA, align = "right"),
+         twenty_year_avg = rollmean(no_smoothing, k = 20, fill = NA, align = "right"))
+```
 
 **Question 8:**
 
