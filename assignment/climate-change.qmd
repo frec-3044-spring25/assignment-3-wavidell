@@ -85,14 +85,16 @@ Describe the data set to the best of your ability, given the documentation provi
 - What is the difference between "global temperature" and "global temperature anomaly"? 
 
 ```{r}
-class(temp$year)
-class(temp$no_smoothing)
-class(temp$`lowess(5)`)
+#class(temp$year)
+#class(temp$no_smoothing)
+#class(temp$`lowess(5)`)
+
+## Code written after read in to verify. Commented out to resolve rendering issue.
 ```
 
 This data comes from NASA/GISS and is compared to independent studies from NOAA.  
 Each column is numeric, with the 'no_smoothing' and 'lowess(5)' columns being measured in degrees Celsius.  
-Global temperature refers to the average global temperature, while global temperature anomoly refers to how many degrees off of the average we are at for a given year.
+Global temperature refers to the average global temperature, while global temperature anomaly refers to how many degrees off of the average we are at for a given year.
 
 
 **Question 4:**
@@ -121,7 +123,7 @@ temp |>
   labs(x = "Year", y = "Temperature Anomoly (C)", title = "Average Temperature over Time")
 ```
 
-Generally, the anomaly fluctuates, but there is an overall upward trend. Around 1980, the anomaly begins to climb.
+Generally, the anomaly fluctuates, but there is an overall upward trend. Around 1980, the anomaly begins to climb. I believe this was the result of increased manufacturing throughout the world as a result of world-wide economic growth.
 
 ## Evaluating the evidence for a "Pause" in warming?
 
@@ -134,7 +136,7 @@ You will use rolling averages to help you explore the evidence for a pause. Sinc
 Use a search engine (e.g., Google) or a chat LLM to find out how to calculate a rolling average in R. What search term or chat LLM prompt did you use?  What website or answer from the chat LLM did you end up using?  How much did you need to modify the code from the website or chat LLM to answer the question successfully?
 
 ```{r}
-install.packages("zoo")
+
 library(zoo)
 
 rollmean(temp$no_smoothing, k = 5, fill = NA, align = "right")
@@ -239,10 +241,10 @@ ice_co2 <-  read_table("vostok.icecore.co2",
 
 ice_co2 <- ice_co2 |> 
   mutate(year = 2025 - `Age of the ice (YBP)`) |> 
-  arrange(cal_year)
+  arrange(year)
 
 ice_co2 |> 
-  ggplot(aes(cal_year, `CO2 concentration (ppmv)`))+
+  ggplot(aes(year, `CO2 concentration (ppmv)`))+
   geom_point()+
   geom_line()+
   theme_bw()+
@@ -251,8 +253,24 @@ ice_co2 |>
 ```
 
 ```{r}
+ 
+ice_co2 <- ice_co2 |> 
+  rename(monthly_average = `CO2 concentration (ppmv)`)
+
 bind_co2 <- bind_rows(co2, ice_co2)
+
+bind_co2 |> 
+  ggplot(aes(year, monthly_average))+
+  geom_point()+
+  geom_line()+
+  theme_bw()+
+  labs(x = "Year", y = "CO2 Concentration (ppmv)", title = "CO2 Concentration throughout History")
+
+  
 ```
+
+Throughout history, CO2 concentrations tend to rise and fall, but in recent history, it has skyrocketed. 
+
 # Render and committing
 
 Remember to Render your document as HTML and comment+push to GitHub your code and rendered HTML that was created when you knitted the document.  Your GitHub repository should have multiple commits with informative commit messages.
